@@ -1,9 +1,16 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS rates;
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS guest_reviews;
+DROP TABLE IF EXISTS property_reviews;
+
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(32),
   email VARCHAR(64),
   password VARCHAR(64)
-)
+);
 
 CREATE TABLE properties (
   id SERIAL PRIMARY KEY,
@@ -22,7 +29,7 @@ CREATE TABLE properties (
   province VARCHAR(255),
   post_code VARCHAR(32),
   active BOOLEAN
-)
+);
 
 CREATE TABLE rates (
   id SERIAL PRIMARY KEY,
@@ -30,7 +37,7 @@ CREATE TABLE rates (
   end_date DATE,
   cost_per_night SMALLINT,
   property_id INTEGER REFERENCES properties(id)
-)
+);
 
 CREATE TABLE reservations (
   id SERIAL PRIMARY KEY,
@@ -38,7 +45,7 @@ CREATE TABLE reservations (
   end_date DATE,
   property_id INTEGER REFERENCES properties(id),
   guest_id INTEGER REFERENCES users(id)
-)
+);
 
 CREATE TABLE guest_reviews (
   id SERIAL PRIMARY KEY,
@@ -47,7 +54,7 @@ CREATE TABLE guest_reviews (
   reservation_id INTEGER REFERENCES reservations(id),
   rating SMALLINT,
   message TEXT
-)
+);
 
 CREATE TABLE property_reviews (
   id SERIAL PRIMARY KEY,
@@ -56,4 +63,4 @@ CREATE TABLE property_reviews (
   property_id INTEGER REFERENCES properties(id),
   rating SMALLINT,
   message TEXT
-)
+);
