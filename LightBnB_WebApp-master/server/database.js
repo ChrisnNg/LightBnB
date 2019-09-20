@@ -1,13 +1,8 @@
 const properties = require('./json/properties.json');
 const users = require('./json/users.json');
-const { Pool } = require('pg');
+const db = require('../db/index.js');
 
-const pool = new Pool({
-  user: 'vagrant',
-  password: '123',
-  host: 'localhost',
-  database: 'lightbnb'
-});
+
 /// Users
 
 /**
@@ -23,7 +18,7 @@ const getUserWithEmail = function(email) {
   WHERE email = $1;
   `;
   
-  return pool.query(queryString, [email])
+  return db.pool(queryString, [email])
     .then(res => res.rows[0])
     .catch(err => null);
 
@@ -43,7 +38,7 @@ const getUserWithId = function(id) {
   WHERE id = $1;
   `;
 
-  return pool.query(queryString, [id])
+  return db.pool.query(queryString, [id])
     .then(res => res.rows[0])
     .catch(err => null);
 };
@@ -61,7 +56,7 @@ const addUser =  function(user) {
     INSERT INTO users (name, email, password)
     VALUES ($1, $2, $3) RETURNING *;
   `;
-  return pool.query(queryString, [user.name, user.email, user.password])
+  return db.pool.query(queryString, [user.name, user.email, user.password])
     .then(res => res.rows[0])
     .catch((err) => {
       throw err;
@@ -84,7 +79,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   WHERE guest_id = $1
   LIMIT $2;
   `;
-  return pool.query(queryString,[guest_id, limit])
+  return db.pool.query(queryString,[guest_id, limit])
     .then(res => res.rows)
     .catch((err) => {
       throw err;
@@ -157,7 +152,7 @@ const getAllProperties = function(options, limit = 10) {
   LIMIT $${queryParams.length};
   `;
 
-  return pool.query(queryString, queryParams)
+  return db.pool.query(queryString, queryParams)
     .then(res => res.rows)
     .catch(err => {
       throw err;
@@ -182,7 +177,7 @@ const addProperty = function(property) {
     RETURNING *;
   `;
   const values = [property.title, property.description, property.owner_id, property.cover_photo_url, property.thumbnail_photo_url, property.cost_per_night, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms, property.province, property.city, property.country, property.street, property.post_code];
-  return pool.query(queryString, values)
+  return db.pool.query(queryString, values)
     .then(res => res.rows[0])
     .catch((err) => {
       throw err;
