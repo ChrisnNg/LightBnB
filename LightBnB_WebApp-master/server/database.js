@@ -101,13 +101,63 @@ exports.getAllReservations = getAllReservations;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  const queryString = `
-    SELECT *
-    FROM properties
-    LIMIT $1;
+  let queryParams = [];
+  let queryString = `
+  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id
     `;
+  if (options.city) {//tested and works
+    let city = options.city;
+    city = city.substring(1, city.length - 1);
+    queryParams.push(`%${city}%`);
+    queryString += `WHERE city LIKE $${queryParams.length} `;
+  }
 
-  return pool.query(queryString, [limit])
+  if (options.owner_id) {//untested
+    if (!queryParams.length) {
+      queryString += `WHERE `;
+    } else {
+      queryString += `AND `;
+    }
+    queryParams.push(Number(options.owner_id));
+    queryString += `properties.owner_id = $${queryParams.length}`;
+  }
+
+  if (options.minimum_price_per_night) {
+    if (!queryParams.length) {
+      queryString += `WHERE `;
+    } else {
+      queryString += `AND `;
+    }
+    queryParams.push(Number(options.minimum_price_per_night) * 100);
+    queryString += `properties.cost_per_night >= $${queryParams.length}`;
+  }
+
+  if (options.maximum_price_per_night) {
+    if (!queryParams.length) {
+      queryString += `WHERE `;
+    } else {
+      queryString += `AND `;
+    }
+    queryParams.push(Number(options.maximum_price_per_night) * 100);
+    queryString += `properties.cost_per_night <= $${queryParams.length} `;
+  }
+  
+  queryString += `GROUP BY properties.id `;
+
+  if (options.minimum_rating) {
+    queryParams.push(Number(options.minimum_rating));
+    queryString += `HAVING AVG(property_reviews.rating) >= $${queryParams.length} `;
+  }
+
+  queryParams.push(limit);
+  queryString += ` 
+  ORDER BY properties.cost_per_night 
+  LIMIT $${queryParams.length};
+  `;
+
+  return pool.query(queryString, queryParams)
     .then(res => res.rows)
     .catch(err => {
       throw err;
